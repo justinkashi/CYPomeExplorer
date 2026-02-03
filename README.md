@@ -1,4 +1,4 @@
-#Plant CYPome Explorer (CYPomeExplorer)
+# **Plant CYPome Explorer (CYPomeExplorer)**
 
 A comparative computational framework for functional mapping and substrate triage across plant cytochrome P450s (CYPs), designed for synthetic biology, metabolic engineering, and protein engineering workflows where sequence-identity nomenclature is insufficient to predict substrate specificity and regioselectivity. The core functional descriptor is binding site vectors (BSVs): a high-resolution representation of pocket shape and electrostatics defined by spherical rays cast from a binding-site center to the first intersected atomic surface, recording both vector length and partial charge. 
 

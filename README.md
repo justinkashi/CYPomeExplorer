@@ -1,4 +1,6 @@
-GOAL: replicate faithfully the results by Kuvek et al. for the plant cyp450 section (n=343), ignoring the human cyp section.
+GOAL2: extend and annotate the BSV fingerprints of all plant CYPs and have their metabolites/biosynthetic pahtway annotated too, to try to make a model for enzyme elucidation in biosynthetic pathways.
+
+GOAL1: replicate faithfully the results by Kuvek et al. for the plant cyp450 section (n=343), ignoring the human cyp section.
 
 1. Fetching 343 plant cyp seq across 45 distinct families 
 
@@ -14,5 +16,6 @@ GOAL: replicate faithfully the results by Kuvek et al. for the plant cyp450 sect
 
 
 4. Align: Via pymol-align, perform a global $C_{\alpha}$ alignment of 343 plant CYP models against the oriented 4I3Q reference to project the heme iron origin into the vacant plant active sites. Discard all models with a $C_{\alpha}$ RMSD $> 7.0$ Å. If the authors did global c_a alignment, in boinformatics this usually implies sequence-dependant alignment. Also filter for C_a RMSD < 7 A relative to 4I3Q template ( there will be 342 already kept cuz authors told us the n=342 as the ones who are below 7A) 
+  (and, for MD, additionally aligning each trajectory to its own first frame using only “stable” secondary-structure residues present >97% of the simulation) )
 
-5. (to fill up)
+5. Generation of BSVs: 

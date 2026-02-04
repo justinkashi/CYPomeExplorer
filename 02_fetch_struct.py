@@ -3,6 +3,8 @@ import requests
 import os
 import time
 import argparse
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def get_af_metadata(uniprot_id, session):
     """Queries the AFDB API for the CIF URL and the average pLDDT score."""
@@ -12,7 +14,6 @@ def get_af_metadata(uniprot_id, session):
         if response.status_code == 200:
             data = response.json()
             if data and len(data) > 0:
-                # The API returns a list; we take the first (usually latest) prediction
                 prediction = data[0]
                 return {
                     'cifUrl': prediction.get('cifUrl'),
@@ -22,7 +23,7 @@ def get_af_metadata(uniprot_id, session):
         print(f"API Error for {uniprot_id}: {e}")
     return None
 
-def download_cifs(csv_file, output_dir, plddt_threshold):
+def download_and_plot(csv_file, output_dir):
     try:
         df = pd.read_csv(csv_file)
     except Exception as e:
@@ -40,61 +41,68 @@ def download_cifs(csv_file, output_dir, plddt_threshold):
     session = requests.Session()
     session.headers.update({'User-Agent': 'Mozilla/5.0 (Bioinformatics Pipeline)'})
 
-    stats = {"success": 0, "failed": 0, "skipped_low_plddt": 0, "exists": 0}
+    plddt_scores = []
+    stats = {"success": 0, "failed": 0, "exists": 0}
 
-    print(f"Starting verified download for {len(uniprot_ids)} IDs (Threshold: pLDDT > {plddt_threshold})...")
+    print(f"Starting structure retrieval for {len(uniprot_ids)} IDs...")
 
     for up_id in uniprot_ids:
         clean_id = str(up_id).replace('*', '').strip()
         file_path = os.path.join(output_dir, f"{clean_id}.cif")
         
-        if os.path.exists(file_path):
-            stats["exists"] += 1
-            continue
-
-        # Step 1: Get metadata (URL + pLDDT)
+        # Get metadata to capture pLDDT even if file exists locally
         metadata = get_af_metadata(clean_id, session)
         
-        if not metadata or not metadata['cifUrl']:
-            print(f"[FAIL] No AFDB entry found: {clean_id}")
-            stats["failed"] += 1
-            continue
-
-        # Step 2: Check pLDDT Score (The Quality Control Step)
-        avg_plddt = metadata['avgPlddt']
-        if avg_plddt < plddt_threshold:
-            print(f"[LOW CONFIDENCE] {clean_id} skipped (pLDDT: {avg_plddt:.2f})")
-            stats["skipped_low_plddt"] += 1
-            continue
-
-        # Step 3: Download from the verified URL
-        try:
-            r = session.get(metadata['cifUrl'], timeout=20)
-            if r.status_code == 200:
-                with open(file_path, 'wb') as f:
-                    f.write(r.content)
-                print(f"[OK] {clean_id} downloaded (pLDDT: {avg_plddt:.2f})")
-                stats["success"] += 1
+        if metadata:
+            plddt_scores.append({'ID': clean_id, 'pLDDT': metadata['avgPlddt']})
+            
+            if os.path.exists(file_path):
+                stats["exists"] += 1
             else:
-                print(f"[FAIL] Download failed for {clean_id} (Status {r.status_code})")
-                stats["failed"] += 1
-        except Exception as e:
-            print(f"[ERROR] Connection error for {clean_id}: {e}")
+                try:
+                    r = session.get(metadata['cifUrl'], timeout=20)
+                    if r.status_code == 200:
+                        with open(file_path, 'wb') as f:
+                            f.write(r.content)
+                        stats["success"] += 1
+                    else:
+                        stats["failed"] += 1
+                except:
+                    stats["failed"] += 1
+        else:
             stats["failed"] += 1
         
-        time.sleep(0.1) 
+        time.sleep(0.1)
+
+    # Convert results to DataFrame for plotting
+    results_df = pd.DataFrame(plddt_scores)
+    
+    if not results_df.empty:
+        # Create the distribution plot
+        plt.figure(figsize=(10, 6))
+        sns.histplot(results_df['pLDDT'], kde=True, color='skyblue', bins=20)
+        
+        # Add Kuvek et al. threshold markers for visual reference
+        plt.axvline(70, color='orange', linestyle='--', label='Confident (70)')
+        plt.axvline(90, color='green', linestyle='--', label='Very High Confidence (90)')
+        
+        plt.title('Distribution of pLDDT Scores: 343 Plant CYPs')
+        plt.xlabel('Average pLDDT')
+        plt.ylabel('Frequency')
+        plt.legend()
+        plt.grid(axis='y', alpha=0.3)
+        
+        plot_path = "plddt_distribution.png"
+        plt.savefig(plot_path)
+        print(f"\nDistribution plot saved as: {plot_path}")
+        plt.show()
 
     print(f"\nFinal Summary:")
-    print(f"Successfully Downloaded: {stats['success']}")
-    print(f"Skipped (Low pLDDT):      {stats['skipped_low_plddt']}")
-    print(f"Already Existed:         {stats['exists']}")
-    print(f"Failed (API/Network):    {stats['failed']}")
+    print(f"Downloaded: {stats['success']} | Existed: {stats['exists']} | Failed: {stats['failed']}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("input", help="Path to kuvek_s2.csv")
     parser.add_argument("--out", default="plant_cyp_cifs")
-    parser.add_argument("--plddt", type=float, default=70.0, help="Minimum average pLDDT score (default: 70)")
-    
     args = parser.parse_args()
-    download_cifs(args.input, args.out, args.plddt)
+    download_and_plot(args.input, args.out)

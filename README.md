@@ -15,6 +15,8 @@ PIPELINE
   - author: transrot_4i3q.py -> 4i3q_std.pdb 
   - test pymol align 2 results -> RMSD is 0.001 A
 
+4. Batch align the 342 plant cyps 
+
 4. Generate hemisphere lattice
   - O: sphere.pdb
 

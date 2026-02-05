@@ -38,13 +38,18 @@ ref, mob, outpdb, outtxt = sys.argv[1:5]
 cmd.load(ref, "ref")
 cmd.load(mob, "mob")
 
-r = cmd.align("mob and polymer.protein and backbone",
-              "ref and polymer.protein and backbone")
+sel_mob = "mob and name N+CA+C+O"
+sel_ref = "ref and name N+CA+C+O"
+
+r = cmd.cealign(sel_mob, sel_ref)
 
 cmd.save(outpdb, "mob")
 
 with open(outtxt, "w") as f:
-    f.write(str(r[0]))
+    if r and "RMSD" in r:
+        f.write(str(r["RMSD"]))
+    else:
+        f.write("nan")
 
 cmd.quit()
 """

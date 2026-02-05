@@ -1,4 +1,8 @@
 **Feb5**
+- 
+- align = iterative least‑squares fit with outlier rejection. It can drop badly fitting regions (e.g., disordered tails). Good for robustness, but not exactly what the authors used for backbone‑based comparisons.
+cealign = Combinatorial Extension alignment (CE). It aligns based on structural fragments and reports RMSD from that alignment. This is what the authors’ scripts use for backbone RMSD matrices, so it’s closer to paper‑faithful.
+
 - mean N z is not a “plane is tilted” metric. It’s mostly measuring the plane offset along Z (i.e., the heme plane can be perfectly parallel to XY but sit at z≈0.40 after you center on FE). Kuvek’s PyMOL transform does not require the nitrogen plane to pass through z=0; it centers on FE, not the nitrogen centroid.What you actually need to verify (faithfully) is:
 
 FE is at origin

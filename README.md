@@ -16,6 +16,14 @@ GOAL1: replicate faithfully the results by Kuvek et al. for the plant cyp450 sec
 
 
 4. Align: Via pymol-align, perform a global $C_{\alpha}$ alignment of 343 plant CYP models against the oriented 4I3Q reference to project the heme iron origin into the vacant plant active sites. Discard all models with a $C_{\alpha}$ RMSD $> 7.0$ Å. If the authors did global c_a alignment, in boinformatics this usually implies sequence-dependant alignment. Also filter for C_a RMSD < 7 A relative to 4I3Q template ( there will be 342 already kept cuz authors told us the n=342 as the ones who are below 7A) 
-  (and, for MD, additionally aligning each trajectory to its own first frame using only “stable” secondary-structure residues present >97% of the simulation) )
+  (and, for MD, additionally aligning each trajectory to its own first frame using only “stable” secondary-structure residues present >97% of the simulation)
 
-5. Generation of BSVs: 
+Generation of BSVs
+  - openbabel for vdW radii definitions
+  - gromacs 54a8 force field
+  - cdpkit library + CDPkit kuvek scripts 
+  - MDAnalysis library (md trajectory handling)
+  - sklearn AffinityPropagation 
+
+5. [optional] Obabel add hydrogen and clean the template-aligned structures
+6. Gromacs 54a8

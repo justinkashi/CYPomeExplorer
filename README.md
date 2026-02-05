@@ -10,11 +10,25 @@ PIPELINE
 
 2. Fetching structures via AF2 server 
 
-3. 4I3Q Reference Preparation (trans_rot_4i3q.py)
-  - I: 
-  - O: 
-  
-4. 
+3. 4I3Q Reference Preparation 
+  - custom: 03_prepare_reference.py -> 4I3Q_reference.pdb
+  - author: transrot_4i3q.py -> 4i3q_std.pdb 
+  - test pymol align 2 results -> RMSD is 0.001 A
+
+4. Generate hemisphere lattice
+  - O: sphere.pdb
+
+5. Convert PDB -> PQR (openbabel add radii)
+
+5. Generate surface vectors (surface.py)
+
+6. Generate charge vectors (charge.py)
+
+7. Normalize (normalization.py)
+
+8. Combine to final BSV (combine.py)
+
+9. 
 
 
 

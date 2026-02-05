@@ -1,16 +1,30 @@
 import pymol
 import numpy as np
 import argparse
+import sys
+
+# Standardize PyMOL initialization for headless execution
+pymol.finish_launching(['pymol', '-cq'])
 
 def tranlate_to_iron(resn):
-    pymol.cmd.select('select', f'resn {resn} and name FE')  
-    fe = pymol.cmd.get_coords('select')
-    translation_vector = [-fe[0][0], -fe[0][1], -fe[0][2]]
+    print(f"[1/3] Translating {resn} Iron to origin...")
+    pymol.cmd.select('fe_sel', f'resn {resn} and name FE')
+    if pymol.cmd.count_atoms('fe_sel') == 0:
+        print(f"ERROR: Could not find FE atom in residue {resn}")
+        sys.exit(1)
+        
+    fe = pymol.cmd.get_coords('fe_sel')[0]
+    # Explicitly cast to standard Python floats to avoid API deadlock
+    translation_vector = [-float(fe[0]), -float(fe[1]), -float(fe[2])]
+    
+    print(f"      Targeting origin from current FE: {fe}")
     pymol.cmd.translate(translation_vector, 'all')
-    #pymol.cmd.save('fe.pdb')
+    print("      ✅ Translation finished.")
 
 def unit_vector(vector):
-    return vector / np.linalg.norm(vector)
+    v = np.array(vector)
+    norm = np.linalg.norm(v)
+    return v / norm if norm > 0 else v
 
 def angle_between(v1, v2):
     v1_u = unit_vector(v1)
@@ -18,57 +32,87 @@ def angle_between(v1, v2):
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
 def norm_cross_product(v1, v2):
-    return list(unit_vector(np.cross(v1, v2)))
+    return unit_vector(np.cross(v1, v2))
 
 def rad_to_degree(rad_angle):
-    return np.round(np.rad2deg(rad_angle), 6)
-
-def get_rotation_angle_and_axis(resn, axis):
-    pymol.cmd.select('select', f'resn {resn} and name NA')
-    v1 = tuple(pymol.cmd.get_coords('select')[0].tolist())
-    pymol.cmd.select('select', f'resn {resn} and name NB')
-    v2 = tuple(pymol.cmd.get_coords('select')[0].tolist())
-      
-    v = (0., 1., 0.) if axis == "xz" else (0., 0., 1.) if axis == "xy" else (1., 0., 0.)
-    norm = norm_cross_product(v1, v2)
-    angle_rad = angle_between(norm, v)
-    angle_degree = rad_to_degree(angle_rad)
-    vector_to_rotate_around = norm_cross_product(norm, v)
-    return angle_degree, vector_to_rotate_around
+    return float(np.rad2deg(rad_angle))
 
 def rotate_around_iron(resn, axis):
-    angle_degree, vector_to_rotate_around = get_rotation_angle_and_axis(resn, axis)
-    if angle_degree != "Done":
-        pymol.cmd.rotate(vector_to_rotate_around, angle=angle_degree, selection="all", origin=[0, 0, 0])
-        #pymol.cmd.save('fe_rotate.pdb')
+    print(f"[2/3] Rotating heme into {axis.upper()} plane...")
+    
+    # Extract Nitrogen coordinates for plane definition
+    pymol.cmd.select('na_sel', f'resn {resn} and name NA')
+    pymol.cmd.select('nb_sel', f'resn {resn} and name NB')
+    
+    if pymol.cmd.count_atoms('na_sel') == 0 or pymol.cmd.count_atoms('nb_sel') == 0:
+        print(f"ERROR: NA or NB atoms not found in {resn}")
+        sys.exit(1)
+
+    v1 = np.array(pymol.cmd.get_coords('na_sel')[0])
+    v2 = np.array(pymol.cmd.get_coords('nb_sel')[0])
+    
+    # Calculate Heme normal
+    current_norm = unit_vector(np.cross(v1, v2))
+    target_norm = np.array([0., 0., 1.]) if axis == "xy" else \
+                  np.array([0., 1., 0.]) if axis == "xz" else \
+                  np.array([1., 0., 0.])
+    
+    angle_deg = rad_to_degree(angle_between(current_norm, target_norm))
+    rot_axis = norm_cross_product(current_norm, target_norm)
+    
+    # CRITICAL: Convert everything to pure Python types before calling PyMOL
+    rot_axis_list = [float(x) for x in rot_axis]
+    angle_float = float(angle_deg)
+    
+    if angle_float > 0.001:
+        print(f"      HEARTBEAT: Sending rotation order to PyMOL engine...")
+        print(f"      Parameters: {angle_float:.4f} degrees around {rot_axis_list}")
+        
+        # Suspend updates to prevent engine hang during transformation
+        pymol.cmd.set('suspend_updates', 'on')
+        pymol.cmd.rotate(rot_axis_list, angle=angle_float, selection="all", origin=[0, 0, 0])
+        pymol.cmd.set('suspend_updates', 'off')
+        
+        print("      ✅ Rotation finished.")
+    else:
+        print("      Plane is already aligned. Skipping rotation.")
 
 def additional_rotation(resn, output_name):
-    pymol.cmd.select('select', f'resn {resn} and name FE')
-    fe = pymol.cmd.get_coords('select')[0]
-    pymol.cmd.select('select', f'resn {resn} and name NA')
-    na = pymol.cmd.get_coords('select')[0]
+    print(f"[3/3] Finalizing orientation (Fe-NA to X-axis)...")
     
-    fe_na_vector = np.array(na) - np.array(fe)
+    na_coords = np.array(pymol.cmd.get_coords(f'resn {resn} and name NA')[0])
+    # Iron is at 0,0,0
+    fe_na_vector = na_coords 
     reference_vector = np.array([1, 0, 0])
     
-    angle_rad = angle_between(fe_na_vector, reference_vector)
-    angle_degree = rad_to_degree(angle_rad)
-    rotation_axis = norm_cross_product(fe_na_vector, reference_vector)
+    angle_deg = rad_to_degree(angle_between(fe_na_vector, reference_vector))
     
-    pymol.cmd.rotate(rotation_axis, angle=angle_degree, selection="all", origin=[0, 0, 0])
+    if angle_deg > 0.001:
+        rot_axis = [float(x) for x in norm_cross_product(fe_na_vector, reference_vector)]
+        pymol.cmd.rotate(rot_axis, angle=float(angle_deg), selection="all", origin=[0, 0, 0])
+    
+    print(f"      ✅ Orientation locked. Saving to: {output_name}")
     pymol.cmd.save(output_name)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Align and rotate molecular structures.")
-    parser.add_argument('-p', '--pdb', type=str, required=True, help="Path to pdb file")
-    parser.add_argument('-a', '--axis', type=str, default="xy", required=False, help="Axis for angle calculation.")
-    parser.add_argument('-n', '--name', type=str, default="HEMO", required=False, help="Residue name [upper case]")
-    parser.add_argument('-o', '--output', type=str, default="fe_rotate.pdb", required=False, help="Output file name")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--pdb', required=True)
+    parser.add_argument('-a', '--axis', default="xy")
+    parser.add_argument('-n', '--name', default="HEM")
+    parser.add_argument('-o', '--output', default="4i3q_std.pdb")
     args = parser.parse_args()
     
-    pymol.cmd.load(args.pdb, 'ime')
+    print(f"\n--- REPRODUCTION PIPELINE: {args.pdb} ---")
+    pymol.cmd.load(args.pdb, 'target')
+    
     tranlate_to_iron(args.name)
-    if get_rotation_angle_and_axis(args.name, args.axis) != "Done":
-        rotate_around_iron(args.name, args.axis)
+    rotate_around_iron(args.name, args.axis)
     additional_rotation(args.name, args.output)
-
+    
+    # FINAL QC PRINT
+    final_fe = pymol.cmd.get_coords(f'resn {args.name} and name FE')[0]
+    print(f"\n--- FINAL COORDINATE CHECK ---")
+    print(f"FE Position: {final_fe}")
+    print(f"Targeting:   [0.0, 0.0, 0.0]")
+    
+    pymol.cmd.quit()

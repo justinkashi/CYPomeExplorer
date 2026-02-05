@@ -1,5 +1,19 @@
 **Feb5**
-- 
+- mean N z is not a “plane is tilted” metric. It’s mostly measuring the plane offset along Z (i.e., the heme plane can be perfectly parallel to XY but sit at z≈0.40 after you center on FE). Kuvek’s PyMOL transform does not require the nitrogen plane to pass through z=0; it centers on FE, not the nitrogen centroid.What you actually need to verify (faithfully) is:
+
+FE is at origin
+
+the heme plane normal is aligned with +Z (angle ≈ 0°)
+
+the heme nitrogens have small z-spread (stddev small) after rotation
+
+in-plane lock: NA projected to XY points to +X (y≈0, x>0) 
+- The 4 values in that list refer to the four pyrrole nitrogen atoms (labeled NA, NB, NC, and ND) that surround the central iron atom in the heme group.
+
+In a Cytochrome P450, these four nitrogens form the "base" of the active site. To ensure your binding site vectors sample the pocket accurately, the entire heme macrocycle must be horizontal.
+- Step3: Running transrot: ok i use conda venv and its running transrot but stuck during rotation The hang is occurring inside the PyMOL engine's rotate call. This often happens in headless environments on macOS when the PyMOL API receives NumPy float64 objects instead of standard Python float types, or when the geometry engine deadlocks while trying to update a large selection. The most reliable way to install PyMOL with its required binary libraries on macOS is through conda or mamba. These managers bundle the necessary .dylib files.. The error Library not loaded: @rpath/libGLEW.2.1.dylib indicates that the PyMOL installation in the current virtual environment is failing to locate its binary dependencies. This is a common issue with pip-installed PyMOL on macOS, as it often fails to correctly link system libraries like GLEW.The libGLEW.2.1.dylib error happened because your pip version of PyMOL was a "Wheel" compiled on a machine where the user was named Martin. By using conda-forge, the package manager will download a version specifically compiled for your macOS and link it to the libraries inside your kuvek_env folder instead of a random user's path.
+- Step3: You translated FE → origin, but you did not (and should not, if you want to match Kuvek) force the nitrogen plane to pass through the origin. If FE is not perfectly coplanar with NA/NB/NC/ND in the deposited structure (common), then after you rotate the plane normal to +Z you will still see a non-zero mean N z (it’s basically the signed distance of the N-plane from FE along the normal). Kuvek’s approach (translate FE + rotate orientation) also does not guarantee “mean N z = 0”.
+
 - aligned PDBs (UniProt)
    ↓
 surface.py / charge.py

@@ -1,157 +1,176 @@
+#!/usr/bin/env python3
+
 """
-USAGE:
-    python 03_prepare_reference.py data/4I3Q.cif
+USAGE
+    python 03_prepare_reference.py data/4i3q.cif
 
-DEPENDENCIES:
-    pip install biopython numpy matplotlib
+DEPENDENCIES
+    pip install biopython numpy
 
-OUTPUTS:
-    - 4I3Q_reference.pdb
-    - reference_qc_plot.png
+OUTPUT
+    4I3Q_reference.pdb
 """
 
 import sys
-import os
 import numpy as np
-import matplotlib.pyplot as plt
-from Bio.PDB import PDBParser, PDBIO, MMCIFParser
+from Bio.PDB import MMCIFParser, PDBParser, PDBIO
 
 
-def prepare_reference(input_file, output_file="4I3Q_reference.pdb"):
+# ---------------------------------------------------------
+# helpers
+# ---------------------------------------------------------
 
-    if not os.path.exists(input_file):
-        print(f"ERROR: File not found at {input_file}")
-        sys.exit(1)
+def rodrigues(a, b):
+    a = a / np.linalg.norm(a)
+    b = b / np.linalg.norm(b)
 
-    parser = MMCIFParser(QUIET=True) if input_file.endswith(".cif") else PDBParser(QUIET=True)
-    structure = parser.get_structure("REF", input_file)
+    v = np.cross(a, b)
+    s = np.linalg.norm(v)
+    c = np.dot(a, b)
+
+    if s < 1e-8:
+        return np.eye(3)
+
+    vx = np.array([
+        [0, -v[2], v[1]],
+        [v[2], 0, -v[0]],
+        [-v[1], v[0], 0]
+    ])
+
+    return np.eye(3) + vx + vx @ vx * ((1 - c) / (s**2))
+
+
+# ---------------------------------------------------------
+# main
+# ---------------------------------------------------------
+
+def prepare_reference(infile, outfile="4I3Q_reference.pdb"):
+
+    parser = MMCIFParser(QUIET=True) if infile.endswith(".cif") else PDBParser(QUIET=True)
+    structure = parser.get_structure("REF", infile)
     model = structure[0]
 
-    # -------------------------------------------------
-    # 1. Locate FE
-    # -------------------------------------------------
-    fe_atom = None
-    for atom in model.get_atoms():
-        if atom.get_parent().get_resname().upper() == "HEM" and atom.get_name().upper() == "FE":
-            fe_atom = atom
-            break
-
-    if fe_atom is None:
-        raise ValueError("Could not find heme FE atom.")
-
-    fe_coord = fe_atom.get_coord()
-
-    # -------------------------------------------------
-    # 2. Find nitrogens + proximal cysteine
-    # -------------------------------------------------
-    n_atoms = {}
-    prox_cys_sg = None
-    min_dist = 999
+    fe = None
+    Ns = {}
+    prox_sg = None
+    best = 999.0
 
     for atom in model.get_atoms():
         res = atom.get_parent().get_resname().upper()
         name = atom.get_name().upper()
 
+        if res == "HEM" and name == "FE":
+            fe = atom
+
         if res == "HEM" and name in {"NA", "NB", "NC", "ND"}:
-            n_atoms[name] = atom
+            Ns[name] = atom
 
-        if res == "CYS" and name == "SG":
-            d = np.linalg.norm(atom.get_coord() - fe_coord)
-            if d < 4.5 and d < min_dist:
-                prox_cys_sg = atom
-                min_dist = d
+    if fe is None or len(Ns) != 4:
+        raise RuntimeError("Failed to find heme atoms")
 
-    if len(n_atoms) != 4:
-        raise ValueError("Did not find 4 heme nitrogens.")
+    fe_pos = fe.get_coord()
 
-    # -------------------------------------------------
-    # 3. Translate FE → origin
-    # -------------------------------------------------
+    # find proximal cysteine
     for atom in model.get_atoms():
-        atom.set_coord(atom.get_coord() - fe_coord)
+        if atom.get_parent().get_resname().upper() == "CYS" and atom.get_name().upper() == "SG":
+            d = np.linalg.norm(atom.get_coord() - fe_pos)
+            if d < 4.5 and d < best:
+                best = d
+                prox_sg = atom
 
-    # -------------------------------------------------
-    # 4. Fit heme plane via SVD
-    # -------------------------------------------------
-    coords = np.array([a.get_coord() for a in n_atoms.values()])
-    _, _, vh = np.linalg.svd(coords)
+    # ---------------------------------------------------------
+    # 1. translate FE -> origin
+    # ---------------------------------------------------------
+    for a in model.get_atoms():
+        a.set_coord(a.get_coord() - fe_pos)
+
+    # ---------------------------------------------------------
+    # 2. plane fit (CORRECT: centered SVD)
+    # ---------------------------------------------------------
+    n_coords = np.array([a.get_coord() for a in Ns.values()])
+    centroid = n_coords.mean(axis=0)
+    centered = n_coords - centroid
+
+    _, _, vh = np.linalg.svd(centered, full_matrices=False)
     normal = vh[-1]
     normal /= np.linalg.norm(normal)
 
-    # -------------------------------------------------
-    # 5. Ensure distal side +Z
-    # -------------------------------------------------
-    if prox_cys_sg is not None:
-        if np.dot(normal, prox_cys_sg.get_coord()) > 0:
-            normal = -normal
+    # distal side should face +Z
+    if prox_sg is not None and np.dot(normal, prox_sg.get_coord()) > 0:
+        normal = -normal
 
-    # -------------------------------------------------
-    # 6. Rotate normal → +Z
-    # -------------------------------------------------
-    target = np.array([0, 0, 1])
-    v = np.cross(normal, target)
-    s = np.linalg.norm(v)
-    c = np.dot(normal, target)
+    # ---------------------------------------------------------
+    # 3. rotate normal -> +Z
+    # ---------------------------------------------------------
+    R = rodrigues(normal, np.array([0, 0, 1]))
 
-    if s < 1e-8:
-        rot = np.eye(3)
-    else:
-        vx = np.array([[0, -v[2], v[1]],
-                       [v[2], 0, -v[0]],
-                       [-v[1], v[0], 0]])
-        rot = np.eye(3) + vx + (vx @ vx) * ((1 - c) / s**2)
+    for a in model.get_atoms():
+        a.set_coord(R @ a.get_coord())
 
-    for atom in model.get_atoms():
-        atom.set_coord(rot @ atom.get_coord())
+    # ---------------------------------------------------------
+    # 4. in-plane rotation (FE->NA -> +X)
+    # ---------------------------------------------------------
+    na = Ns["NA"].get_coord()
+    na_xy = np.array([na[0], na[1], 0])
 
-    # -------------------------------------------------
-    # 7. In-plane rotation (NA → +X)  <<< KUVEK STEP
-    # -------------------------------------------------
-    na_atom = n_atoms["NA"]
-    na_vec = na_atom.get_coord()
+    theta = np.arctan2(na_xy[1], na_xy[0])
 
-    na_xy = np.array([na_vec[0], na_vec[1], 0.0])
-    angle = np.arctan2(na_xy[1], na_xy[0])
+    cz = np.cos(-theta)
+    sz = np.sin(-theta)
 
-    cos_a, sin_a = np.cos(-angle), np.sin(-angle)
-    rot_z = np.array([[cos_a, -sin_a, 0],
-                      [sin_a,  cos_a, 0],
-                      [0, 0, 1]])
+    Rz = np.array([
+        [cz, -sz, 0],
+        [sz,  cz, 0],
+        [0,   0,  1]
+    ])
 
-    for atom in model.get_atoms():
-        atom.set_coord(rot_z @ atom.get_coord())
+    for a in model.get_atoms():
+        a.set_coord(Rz @ a.get_coord())
 
-    # -------------------------------------------------
-    # QC
-    # -------------------------------------------------
-    final_fe = fe_atom.get_coord()
-    final_ns = np.array([a.get_coord() for a in n_atoms.values()])
+    # ---- FINAL QC (correct metrics) ----
+    Ns_after = np.array([a.get_coord() for a in Ns.values()])
+    fe_after = fe.get_coord()
 
-    print("\n--- QC REPORT ---")
-    print("FE position:", final_fe)
-    print("Mean N Z:", np.mean(final_ns[:, 2]))
-    print("NA direction:", na_atom.get_coord() / np.linalg.norm(na_atom.get_coord()))
-    print("----------------\n")
+    # Recompute best-fit normal after all rotations (centered SVD)
+    centroid2 = Ns_after.mean(axis=0)
+    centered2 = Ns_after - centroid2
+    _, _, vh2 = np.linalg.svd(centered2, full_matrices=False)
+    normal2 = vh2[-1]
+    normal2 /= np.linalg.norm(normal2)
+    # force "up" for reporting
+    if normal2[2] < 0:
+        normal2 *= -1
 
-    # Plot
-    plt.figure(figsize=(5, 5))
-    plt.scatter(final_ns[:, 0], final_ns[:, 1])
-    plt.scatter(0, 0, marker="x", s=100)
-    plt.axhline(0)
-    plt.axvline(0)
-    plt.gca().set_aspect("equal")
-    plt.savefig("reference_qc_plot.png")
+    angle_to_z = np.degrees(np.arccos(np.clip(normal2[2], -1.0, 1.0)))
 
-    # -------------------------------------------------
-    # FINAL SAVE (must be LAST)
-    # -------------------------------------------------
+    # z spread (tilt/planarity proxy)
+    z_mean = Ns_after[:, 2].mean()
+    z_std  = Ns_after[:, 2].std()
+    z_max_dev = np.max(np.abs(Ns_after[:, 2] - z_mean))
+
+    # NA in-plane lock check
+    na = Ns["NA"].get_coord()
+    na_xy = np.array([na[0], na[1], 0.0])
+    na_xy /= np.linalg.norm(na_xy)
+
+    print("\n--- FINAL QC (Kuvek-frame) ---")
+    print("FE:", fe_after, "(expect ~[0,0,0])")
+    print("heme normal:", normal2, "angle_to_+Z(deg):", angle_to_z, "(expect ~0)")
+    print("N z-mean:", z_mean, "(offset OK)")
+    print("N z-std:", z_std, "N z-maxdev:", z_max_dev, "(expect small, e.g. <0.05–0.1 Å)")
+    print("NA_xy:", na_xy, "(expect x>0, y~0)")
+    print("-----------------------------\n")
+
+
+    # ---------------------------------------------------------
+    # save
+    # ---------------------------------------------------------
     io = PDBIO()
     io.set_structure(structure)
-    io.save(output_file)
+    io.save(outfile)
 
+
+# ---------------------------------------------------------
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python 03_prepare_reference.py <input.cif|pdb>")
-    else:
-        prepare_reference(sys.argv[1])
+    prepare_reference(sys.argv[1])

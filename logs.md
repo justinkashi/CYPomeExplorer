@@ -1,3 +1,27 @@
+**Feb5**
+- 
+- aligned PDBs (UniProt)
+   ↓
+surface.py / charge.py
+   ↓
+combine.py
+   ↓
+bsv_combined.txt (UniProt labels)
+   ↓
+numeric remap
+   ↓
+first_clustering.py
+   ↓
+clusters
+   ↓
+map back to UniProt
+
+- Feature	Your Zenodo Protocol	My Previous Protocol (CDPKit)
+Logic Split	Two-pass: Separate scripts for Length (surface.py) and Charge (charge.py).	Unified: One script (gen_kuvek_bp_descr.py) does both in one pass.
+Charge Source	Uses an external reference_charges.txt lookup.	Uses charges assigned directly to the atoms (via GROMACS/MOL2).
+Radii Source	Expects PQR format (columns 70-75) for surface.py.	Uses the OpenBabel radii library internally.
+Normalization	Requires manual path editing in normalization.py.	Automated via the cmp_kuvek_bp_descrs.py comparison tool.
+
 **Feb 4/5**
 - 01_topo/
 

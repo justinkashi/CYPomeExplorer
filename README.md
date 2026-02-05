@@ -1,12 +1,17 @@
 GOAL2: extend and annotate the BSV fingerprints of all plant CYPs and have their metabolites/biosynthetic pahtway annotated too, to try to make a model for enzyme elucidation in biosynthetic pathways.
 
-GOAL1: replicate faithfully the results by Kuvek et al. for the plant cyp450 section (n=343), ignoring the human cyp section.
+GOAL: replicate faithfully the results by Kuvek et al. for the plant cyp450 section (n=343), ignoring the human cyp section. 
+1. The BSV Similarity Tree, (Figures S2 S3)
+2. Functional clustering, (Case study 3) 
+3. Comparing charge.txt  (FigureS10)
+4. MD-Sim Insights (pocket fluctuations, representative conformers/exemplar from cluster centers in each sim)
 
+PIPELINE
 1. Fetching 343 plant cyp seq across 45 distinct families 
 
-2. Fetching 343 plant cyp .cif (via AF2 server, via uniprot IDs). Structures were validated by their high pLDDT scores (AlphaFold confidence)
+2. Fetching 343 plant cyp struct .cif (via AF2 server, via uniprot IDs). Structures were validated by their high pLDDT scores (AlphaFold confidence)
 
-3. PDB Refrence Preparation: Translate and rotate the 4I3Q reference so the heme iron sits at (0,0,0) and the macrocycle (large circular porphyrin made up of 4 pyrrole rings, holding iron atom in place, the chassis) lies in the xy-plane, orienting the proximal cysteine toward -z to ensure the distal pocket faces +z. This template serves as the master coordinate system for global C_alpha alignment of all 343 plant AlphaFold models, projecting the 4I3Q origin into their empty pockets; subsequently, mask all heme atoms during vector generation to ensure the 320 rays capture true pocket volume rather than the cofactor
+3. 4I3Q Reference Preparation: Translate and rotate the 4I3Q reference so the heme iron sits at (0,0,0) and the macrocycle (large circular porphyrin made up of 4 pyrrole rings, holding iron atom in place, the chassis) lies in the xy-plane, orienting the proximal cysteine toward -z to ensure the distal pocket faces +z. This template serves as the master coordinate system for global C_alpha alignment of all 343 plant AlphaFold models, projecting the 4I3Q origin into their empty pockets; subsequently, mask all heme atoms during vector generation to ensure the 320 rays capture true pocket volume rather than the cofactor
 
   QC REPORT FOR: data/4I3Q.cif 
   Iron Position: [0. 0. 0.] (Expected: [0,0,0]) -> translation worked 
@@ -15,7 +20,7 @@ GOAL1: replicate faithfully the results by Kuvek et al. for the plant cyp450 sec
   And look at reference_qc_plot.png -> orientation works, distal pocket is +z 
 
 
-4. Align: Via pymol-align, perform a global $C_{\alpha}$ alignment of 343 plant CYP models against the oriented 4I3Q reference to project the heme iron origin into the vacant plant active sites. Discard all models with a $C_{\alpha}$ RMSD $> 7.0$ Å. If the authors did global c_a alignment, in boinformatics this usually implies sequence-dependant alignment. Also filter for C_a RMSD < 7 A relative to 4I3Q template ( there will be 342 already kept cuz authors told us the n=342 as the ones who are below 7A) 
+4. Template-Alignment: Via pymol-align, perform a global $C_{\alpha}$ alignment of 343 plant CYP models against the oriented 4I3Q reference to project the heme iron origin into the vacant plant active sites. Discard all models with a $C_{\alpha}$ RMSD $> 7.0$ Å. If the authors did global c_a alignment, in boinformatics this usually implies sequence-dependant alignment. Also filter for C_a RMSD < 7 A relative to 4I3Q template ( there will be 342 already kept cuz authors told us the n=342 as the ones who are below 7A) 
   (and, for MD, additionally aligning each trajectory to its own first frame using only “stable” secondary-structure residues present >97% of the simulation)
 
 For the MD-side: 
@@ -27,4 +32,4 @@ For the MD-side:
 
 [optional] Obabel add hydrogen and clean the template-aligned structures. Gromacs 54a8 force field to assign partial charges to the atoms of the PDBs 
 
-5. Generation of BSVs: 
+5. PDB-PQR Conversion: surface.py looks for columns 70-75 for radii (pdb2pqr)

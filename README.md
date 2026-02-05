@@ -22,12 +22,12 @@ PIPELINE
 
 6. Convert PDB -> PQR (openbabel, add radii)
 
-7. Generate surface vectors (surface.py) -> 
-  - bottleneck: uses one core -> tweaked it using python's multiprocessing (surface_parallel.py) 
-  - trying to make surface_gpu.py -> 
-  - 
+7. Generate surface vectors (surface.py): pass  
+  - bottleneck: uses one core -> tweaked it using python's multiprocessing (surface_parallel.py) -> pass
+  - GPU/Cuda version: surface_gpu.py, pass 
 
 8. Generate charge vectors (charge.py)
+
 
 9. Normalize (normalization.py)
 

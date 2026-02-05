@@ -1,5 +1,14 @@
 **Feb5**
-- 
+- The primary challenge is that surface.py is sequential: for a single ray, it checks one atom, potentially updates (shortens) the ray vector $V$, and then checks the next atom using that new, shortened $V$. A standard GPU approach is parallel, checking all atoms simultaneously, which would miss those intermediate vector mutations and rounding shifts.To get a bit-for-bit match, we must use a Custom CUDA Kernel (via CuPy or Numba) that processes each ray in its own thread but handles the atoms for that ray sequentially.
+- 1. Cumulative Rounding and Vector Mutation
+The most significant mathematical difference lies in how the ray vector V is handled during the atom-check loop:
+
+surface.py (Mutation): In the original script, when an intersection is found, the vector V is overwritten with the new shortened vector: V = temp_vector. Because the script uses np.round(np.linalg.norm(V), 3) to calculate cos_alpha for the next atom in the list, updating V changes the input to the rounding function for every subsequent calculation in that loop. This makes the result dependent on the order of atoms in your PQR file.
+
+surface_parallel.py (Constant): The parallel version treats the surface coordinate V as a constant for the duration of the loop and only tracks the min_dist. Since V never changes, the rounded norm remains identical for every atom check, avoiding the "drift" caused by the mutating vector in the original script.
+- Step7: Since the GPU calculations are already quite fast, the primary bottleneck in your script is likely I/O bound: the CPU spends time reading a PQR file from the disk and parsing the text while the GPU sits idle. To speed this up, you can use Asynchronous Parallelization to overlap the file reading (CPU) with the surface calculation (GPU).
+
+On a single GPU, the most effective way to do this without getting into complex CUDA Streams is using a ThreadPoolExecutor. This allows one thread to read the next file from the disk while another thread is executing the GPU kernels for the current file.
 - step7 gpu: While maximizing your CPU cores with multiprocessing is the standard approach for this pipeline, moving to a GPU is the next level of "playing" with performance.
 
 To make this jump, you have to transition from NumPy (CPU-based) to a library like CuPy, which mimics the NumPy API but executes on NVIDIA CUDA cores. This is particularly effective for the "ray-casting" logic because a GPU can

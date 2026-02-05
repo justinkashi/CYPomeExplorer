@@ -1,0 +1,7 @@
+@topo      ../topo/cyp_heme.top
+@pbc       r
+@negative  36 CL-
+@positive  34 NA+
+@potential 0.8
+@mindist   0.35
+@pos     ../simbox/cyp_h2o.cnf

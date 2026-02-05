@@ -1,0 +1,91 @@
+;	from /pool/teakuvek/CYP72A208/topo/CYP72A208.top (GROMOS)
+;COM_TOP: Combined topology using:
+;           1 : /pool/teakuvek/CYP72A208/topo/cyp_heme.top
+;   2 ..   41 : /pool/teakuvek/CYP72A208/topo/Cl.top
+;  42 ..   72 : /pool/teakuvek/CYP72A208/topo/Na.top
+;Parameters from 1, solvent from 1
+;
+;
+
+#include "top_ff.itp"
+#include "mol_1.itp"
+#include "gromos54a7.ff/spc.itp"
+#include "gromos54a7.ff/ions.itp"
+
+
+[ system ]
+molecular system
+[ molecules ]
+mol_1                1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+SOL               14673   

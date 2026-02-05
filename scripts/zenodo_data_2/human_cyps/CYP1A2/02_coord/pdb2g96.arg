@@ -1,0 +1,5 @@
+@topo ../topo/cyp_heme.top 
+# the PDB file you want to convert
+@pdb   2HI4.pdb
+@lib   /home/teakuvek/Documents/tutorial/files/coord/pdb2g96_hem.lib
+@gch

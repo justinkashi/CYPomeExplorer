@@ -1,4 +1,129 @@
-**Feb 4**
+**Feb 4/5**
+- 01_topo/
+
+Topology preparation
+
+gmx/
+
+*_gmx.top → main topology
+
+mol_1.itp → molecule params
+
+top_ff.itp → force field include
+
+gromos/
+
+.top files → GROMOS topologies
+
+cyp_heme.top → heme parameters
+
+linking scripts (*.arg)
+
+Purpose:
+Force-field parameterization
+
+02_coord/
+
+Starting coordinates
+
+CYP72A188.pdb → starting structure
+
+small helper scripts
+
+Purpose:
+Initial structure
+
+03_min/
+
+Energy minimization
+
+em.imd
+
+em.run
+
+Purpose:
+Relax structure
+
+04_simbox/
+
+Solvation box
+
+sim_box_*
+
+solvent configs
+
+Purpose:
+Add water box
+
+05_ion/
+
+Ion addition
+
+ion.arg
+
+Purpose:
+Neutralize system
+
+06_eq/
+
+Equilibration
+
+equilibration.imd
+
+job scripts
+
+Purpose:
+Thermal/pressure equilibration
+
+07_md/
+
+Production MD
+
+.gro
+
+.mdp
+
+index files
+
+Purpose:
+Trajectory generation
+
+Critical conclusion
+
+This entire tree is:
+
+MD trajectory generation only
+
+Not descriptor generation.
+- These belong to:
+
+CDPKit → compiled descriptor path
+
+They are not part of the Zenodo pipeline.
+
+They implement the descriptor inside CDPKit for speed.
+
+They do the same job as:
+
+surface.py + charge.py + normalization.py + combine.py
+
+in one compiled call.
+- WHEN IMPLEMENTING THE ZENOTO FOLDER SCRIPTS:  Looking at surface.py logic:
+
+reads atom radius from fixed columns
+
+expects PQR format or PDB with radii embedded
+
+Consequence
+
+If you feed plain PDB → all distances will be wrong (radii = 0 or garbage)
+
+- Non-identical parameters: 54a7 vs 54a8 differ in residue/atom typing, partial charges, and/or LJ parameters for some functional groups; even “small” changes can affect electrostatics, H-bonding, salt-bridges, and stability on MD timescales.
+
+Downstream comparability: your trajectories could drift differently, so any derived pocket descriptors/vectors can shift. If the paper’s conclusions depend on subtle binding-site electrostatics/shape distributions, this matters.
+
+It won’t necessarily break the workflow, but it becomes “close reproduction” rather than “same conditions”.
+- writing GROMOS in Rust instead of C++ ? 
 - if kuvek method is looking at the binding site without ligands, an improvement would be to generate dynamic binding site vectors when a ligand is there also we could simulate the MD trajectory of a typical CYP catalytic reaction (PETase too)
 - gromos force fields: 54a7 and 54a8 have identical protein partial charges, 54a8 mainly updated:lipids small molecules solvent tweaks
 - Failed to kekulize aromatic bonds: That warning is OpenBabel telling you it couldn’t assign a specific single/double-bond “Kekulé” pattern for something it thinks is aromatic. In protein PDBs this usually happens because PDB files don’t contain explicit bond orders, and OpenBabel’s bond-order perception gets confused (common with histidine rings, aromatic residues, or odd/partial atoms in predicted structures).Kekulization is the chemical informatics process of converting aromatic, delocalized bond representations (e.g., in RDKit or CDK) into a specific Lewis structure featuring localized alternating single and double bonds. It assigns exact bond orders, replacing aromatic flags, which is often required for visualization, fingerprinting, or specific chemical property calculations.  It converts "aromatic" (e.g., c1ccccc1) SMILES into "kekule" (e.g., C1=CC=CC=C1) SMILES.

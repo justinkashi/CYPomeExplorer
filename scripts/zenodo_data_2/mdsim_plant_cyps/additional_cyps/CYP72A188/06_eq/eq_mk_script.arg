@@ -1,0 +1,12 @@
+@sys		eq_cyp
+@bin	        /mms/common/gromos_20210129/gromosXX/BUILD_CUDA/bin/md
+@dir	        /pool/teakuvek/CYP72A188/eq/eq1
+@files
+  topo		../../topo/CYP72A188.top
+  input		equilibration.imd
+  coord         ../../ion/cyp_ion.cnf
+  posresspec    cyp_ion.por
+  refpos        cyp_ion.rpr
+@template       /home/teakuvek/libraries/mk_script_cuda_8_slurm-v2.lib
+@version        md++
+@joblist        equilibration.jobs

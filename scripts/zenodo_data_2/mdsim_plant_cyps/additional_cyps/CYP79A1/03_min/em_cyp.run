@@ -1,0 +1,7 @@
+#!/bin/sh
+GROMOS=/pool/oostenbrink/GROMOS/gromos_20210129/gromosXX/UBUNTU/bin/md
+$GROMOS \
+  @topo ../topo/cyp_heme.top \
+  @conf ../coord/gch_cyp.cnf \
+  @fin  cyp_min.cnf \
+  @input em_cyp.imd > em_cyp.omd

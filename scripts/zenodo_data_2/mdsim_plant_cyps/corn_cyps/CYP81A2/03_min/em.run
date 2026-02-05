@@ -1,0 +1,7 @@
+#!/bin/sh
+GROMOS=md
+$GROMOS \
+  @topo ../topo/cyp_heme.top \
+  @conf ../coord/gch.cnf \
+  @fin  min.cnf \
+  @input em.imd > em.omd

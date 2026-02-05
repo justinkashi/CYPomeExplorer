@@ -1,0 +1,13 @@
+@topo    /pool/teakuvek/CYP72A188/topo/cyp_heme.top
+# We use a cubic box (r = rectangular)
+@pbc     r
+# coordinates of the solute.
+@pos    /pool/teakuvek/CYP72A188/min/min.cnf
+# coordinates of the box containing SPC water molecules.
+@solvent /home/teakuvek/Documents/tutorial/files/box/spc.cnf
+# the minimum solute-wall distance
+@minwall 0.8 0.8 0.8
+# the minimum solute-solvent distance
+@thresh  0.23
+# used if one uses trucated octahedron pbc
+@rotate

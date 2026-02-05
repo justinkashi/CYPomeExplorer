@@ -1,0 +1,80 @@
+;	from /pool/teakuvek/CYPs/human_cyps/CYP2C9/5W0C/topo/5W0C.top (GROMOS)
+;COM_TOP: Combined topology using:
+;           1 : cyp_heme.top
+;   2 ..   31 : /pool/teakuvek/CYPs/CYP72A188/topo/Cl.top
+;  32 ..   61 : /pool/teakuvek/CYPs/CYP72A188/topo/Na.top
+;Parameters from 1, solvent from 1
+;
+;
+
+#include "top_ff.itp"
+#include "mol_1.itp"
+#include "gromos54a7.ff/spc.itp"
+#include "gromos54a7.ff/ions.itp"
+
+
+[ system ]
+molecular system
+[ molecules ]
+mol_1                1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+CL                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+NA                   1
+SOL              14227

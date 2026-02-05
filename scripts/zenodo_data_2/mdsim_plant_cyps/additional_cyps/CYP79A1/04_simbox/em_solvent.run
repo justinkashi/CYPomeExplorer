@@ -1,0 +1,10 @@
+#!/bin/sh
+GROMOS=/pool/oostenbrink/GROMOS/gromos_20210129/gromosXX/UBUNTU/bin/md
+
+$GROMOS \
+  @topo ../topo/cyp_heme.top \
+  @conf sim_box_cyp.cnf \
+  @fin  cyp_h2o.cnf \
+  @refpos sim_box_cyp.rpr \
+  @posresspec sim_box_cyp.por \
+  @input em_solvent.imd > em_solvent.omd

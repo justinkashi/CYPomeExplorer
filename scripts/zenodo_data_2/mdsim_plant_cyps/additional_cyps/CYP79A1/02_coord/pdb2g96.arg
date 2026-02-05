@@ -1,0 +1,13 @@
+# Usage: 
+#
+# pdb2g96
+	@topo  ../topo/cyp_heme.top
+	@pdb   cyp71a1.pdb
+	@out   cyp71a1_pdb.cnf
+	@lib   pdb2g96.lib
+	@gch
+#	[@pbc   <boundary type> <gather method>]
+	@tol   0.1
+#	[@outbf  <write B factors and occupancies to an additional file>]
+#	[@factor <factor to convert length unit to Angstrom, 10.0>]
+

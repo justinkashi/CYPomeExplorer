@@ -1,0 +1,82 @@
+TITLE
+  Library file to specify residue and atom names
+  that are to be considered similar
+END
+RESIDUENAMELIB
+# name in my pdb   name in topology
+	LYS	   LYSH
+	CYS        CYSH
+        GLU        GLUH
+        ASP        ASPH
+        HIS        HISA
+        HIS        HISB
+        HIS        HISH
+        HIS        HIS1
+        HIS        HIS2
+        CYS        CYS1
+        CYS        CYS2
+        CYS        CYS3
+        HEM        HEMO
+        HOH        SOLV
+END
+ATOMNAMELIB
+#    residue in topology	atom in pdb	atom in topology
+        GLN                     1HE2             HE21
+        GLN                     2HE2             HE22
+        ASN                     1HD2             HD21
+        ASN                     2HD2             HD22
+        ILE                     CD1              CD
+        LYSH                    1HZ              HZ1
+        LYSH                    2HZ              HZ2
+        LYSH                    3HZ              HZ3
+        ARG                     1HH1             HH11
+        ARG                     2HH1             HH12
+        ARG                     1HH2             HH21
+        ARG                     2HH2             HH22
+        ILE                     O                O1
+        ILE                     OXT              O2
+        SOLV                    O                OW
+	HEMO			FE1		 FE
+	HEMO			N1               NA
+	HEMO			N2               NB
+	HEMO			N3               NC
+	HEMO			N4               ND
+	HEMO			C1               CHA
+	HEMO			C2               CHB
+	HEMO			C3               CHC
+	HEMO			C4               CHD
+	HEMO			C5               C1A
+	HEMO			C6               C2A
+	HEMO			C7               C3A
+	HEMO			C8               C4A
+        HEMO			C9               CMA
+        HEMO			C10              CAA
+        HEMO			C11              CBA
+        HEMO			C12              CGA
+        HEMO			C13              C1B
+        HEMO			C14              C2B
+        HEMO			C15              C3B
+        HEMO			C16              C4B
+        HEMO			C17              CMB
+        HEMO			C18              CAB
+        HEMO			C19              CBB
+        HEMO			C20              C1C
+        HEMO			C21              C2C
+        HEMO			C22              C3C
+        HEMO			C23              C4C
+        HEMO			C24              CMC
+        HEMO			C25              CAC
+        HEMO			C26              CBC
+        HEMO			C27              C1D
+        HEMO			C28              C2D
+        HEMO			C29              C3D
+        HEMO			C30              C4D
+        HEMO			C31              CMD
+        HEMO			C32              CAD
+        HEMO			C33              CBD
+        HEMO			C34              CGD
+        HEMO			O1               O1A
+        HEMO			O2               O2A
+        HEMO			O3               O1D
+        HEMO			O4               O2D
+END

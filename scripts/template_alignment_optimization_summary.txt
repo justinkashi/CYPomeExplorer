@@ -1,0 +1,33 @@
+Exactly. By establishing a robust, reproducible alignment pipeline now with the 343 plant CYPs, you are essentially "calibrating" your instrument before applying it to the unknown *Tacca* dataset.
+
+While the Kuvek paper emphasizes a single reference for consistency in mapping the functional landscape, your interest in **optimizing the template alignment** is valid for future-proofing.
+
+### **Why One Reference is the Baseline (The Replicating Step)**
+
+To faithfully replicate the study, you need a shared origin point. If you use different references for different targets, the 15 Å sphere will capture different subsets of residues purely due to coordinate shifts, not functional differences.
+
+* **Heme Origin:** The  point for the 320-element vector must be the heme iron  from the reference structure.
+* **Coordinate Stability:** A single high-quality reference (like **CYP3A4**, PDB 1TQN) ensures that every plant CYP is viewed through the same "lens".
+
+### **How you can Optimize for the *Tacca* Dataset**
+
+Once you have the baseline results, you can optimize the alignment logic for your novel *Tacca* sequences to handle structural diversity:
+
+* **Heme Anchoring:** Instead of a simple global alignment (C$\alpha$ to C$\alpha$), you can optimize the alignment to favor conserved P450 structural motifs like the **C-helix**, **I-helix**, and the **heme-binding loop**. This ensures the "pocket" is aligned even if the outer loops of the *Tacca* CYPs are highly divergent.
+* **Multiple Reference Ensembles:** For your future projects, you could potentially align targets against an *ensemble* of high-quality plant references (e.g., a 71-family member and a 716-family member) and take the average iron placement. This reduces bias toward human CYP templates like 3A4.
+
+### **The Overall Task Workflow**
+
+1. **Replication Phase:** Use the **Single Reference (e.g., 1TQN)** + **Global Alignment** to generate BSVs for your 343 plant CYPs and verify you get the same functional "islands" as Kuvek.
+2. **Optimization Phase:** Refine the alignment script to focus on **local active site residues** or **conserved secondary structures**.
+3. **Application Phase:** Apply this optimized code to the **Tacca dataset**. You will then be able to accurately say, *"This Tacca CYP occupies the same functional space as the 716-family triterpene oxidases"* because the vectors were generated using the same optimized calibration.
+
+---
+
+**Would you like me to generate the structural alignment script that uses `MDAnalysis` or `PyMOL` (via `cmd.align`) to map your 343 .cif files onto a reference heme structure?**
+
+---
+
+**Sources:**
+*: *Kuvek et al. (2025)* paper ("Binding-site vectors enable mapping of cytochrome P450 functional landscapes").
+*: *Kuvek et al. Supplemental Data* ("kuvek_supp_2026.pdf").

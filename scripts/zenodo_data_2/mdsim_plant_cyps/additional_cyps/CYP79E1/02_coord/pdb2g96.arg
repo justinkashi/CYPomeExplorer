@@ -1,0 +1,6 @@
+@topo ../topo/cyp_heme.top 
+# the PDB file you want to convert
+@pdb   CYP79E1.pdb
+@lib   /pool/teakuvek/cyp71a1/coord/pdb2g96_heme.lib
+@gch
+@out   pdb2g96_cyp.cnf

@@ -1,0 +1,41 @@
+TITLE
+link
+END
+MTBUILDBLLINK
+#name RNME
+VEZA
+#number of atoms
+8
+#ATOM RES ANM IACM MASS CGC ICGCM MAE MSAE
+1   1   CB  15  14.027    0     0  1  4
+2   1   SG  23  32.06     0     1  5  4 5 6 7 8
+3   1   HG  0   0         0     1  0
+4   2   FE  26  55.847    1.2   0  0
+5   2   NA  9   14.0067  -0.05  0  0
+6   2   NB  9   14.0067  -0.05  0  0
+7   2   NC  9   14.0067  -0.05  0  0
+8   2   ND  9   14.0067  -0.05  1  0
+#bonds NB
+1
+#IB JB MCB
+2 4 53
+#bond angles NBA
+5
+#IB JB KB MCB
+1 2 4 6
+2 4 5 2
+2 4 6 2
+2 4 7 2
+2 4 8 2
+#improper dihedrals NIDA
+0
+#dihedrals NDA
+4
+#IB JB KB LB MCB
+1 2 4 5 38
+1 2 4 6 38
+1 2 4 7 38
+1 2 4 8 38
+END
+
+

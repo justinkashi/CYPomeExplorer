@@ -1,0 +1,8 @@
+#prvo CYP.top onda broj klorova:cl.top pa broj natrija:na.top
+@topo cyp_heme.top 34:Cl.top 40:Na.top 
+# the parameters (what you specified with @param in maketop) are taken from the first topology. 
+# this is not so important because all our topologies use the same force field anyway.
+@param 1
+# the solvent is taken from the first topology.
+@solv  1
+

@@ -1,0 +1,51 @@
+; RUN CONTROL PARAMETERS		
+integrator               = md			;leap-frog algorithm for integrating Newton’s equations of motion
+dt                       = 0.002		;time step in picoseconds
+nsteps                   = 50000000		;number of steps (total simulation time 100 ns)
+;nstxout                  = 2500                ;frequency to write coordinates to output trajectory file
+;nstvout                  = 50000		;frequency to write velocities to output trajectory file
+nstlog                   = 5000		;frequency to write energies to log file
+nstenergy                = 5000			;frequency to write energies to energy file
+nstxout-compressed	 = 5000			;frequency to write coordinates to xtc trajectory
+; compressed-x-grps	 = Protein_HEMO		;group(s) to write to xtc trajectory
+; energygrps		 = Protein_HEMO		;group(s) to write to energy file 
+nstcalcenergy            = 1000			;number of steps that elapse between calculating the energies
+nstcomm			 = 1000			;frequency for center of mass motion removal
+comm-mode    = linear ;remove only COM translation, not rotation
+;comm-gprs		 = Protein_HEMO
+
+; NEIGHBORSEARCHING PARAMETERS
+cutoff-scheme            = Verlet		;verlet atom(particle)-based cutoff with buffered pair list
+rlist       = 1.4		    ;cutoff for neighbour searching - with Verlet lists (and verlet-buffer-drift != 1), rlist is determined automatically.
+; nstlist 		 = 10 			;frequency to update the pair list - with Verlet lists, nstlist is determined automatically.
+ns_type 		 = grid			;make a grid when constructing new pair list
+
+; OPTIONS FOR ELECTROSTATICS AND VDW
+coulombtype              = reaction-field	;treatment of electrostatic interactions	
+epsilon_rf               = 61.0			;dielectric constant for reaction field
+rcoulomb                 = 1.4			;treatment of coulombic interactions
+rvdw                     = 1.4			;treatment of van der waals interactions
+pbc                      = xyz			;periodic boudary conditions in all the directions
+
+; OPTIONS FOR WEAK COUPLING ALGORITHMS - USE BERENDSEN PCOUPL FOR EQUILIBRATION
+tcoupl		            = V-rescale	            
+tc-grps		            = Protein_HEMO Ion_SOLV
+tau_t		              = 1.0 1.0           
+ref_t		              = 300 300
+pcoupl		            = Parrinello-Rahman	    
+pcoupltype	          = isotropic	            
+tau_p		              = 2.0		            	            
+compressibility       = 4.5e-5	            
+ref_p		              = 1.0	
+
+; GENERATE VELOCITIES FOR STARTUP RUN
+gen_vel                 = no
+gen_temp                = 300			;temperature for velocity generation
+gen_seed                = -1			;seed for velocity generation
+
+; OPTIONS FOR BONDS    		
+continuation	          = yes		    ;this is a continued run
+constraint_algorithm    = lincs	    ;costraint algorithm
+constraints	            = all-bonds	;constrain all bonds
+lincs_iter	            = 1		      ;number of iterations for lincs 
+lincs_order	            = 4	        ;accuracy for lincs (number of matrices for the matrix inversion)

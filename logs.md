@@ -1,4 +1,58 @@
 **Feb5**
+- To replicate the authors' results exactly, you are correct: you must use their reference_charges.txt rather than relying on the automated charges from pdb2pqr.
+
+The reason the authors used a reference file is to ensure consistency. In a family as diverse as plant CYPs, automated tools might assign slightly different charges to the same residue type based on its neighbors. By using a "rigid" lookup table, they ensure that every Alanine CA atom in all 342 proteins has the exact same charge value.
+- 1. Why the change in obabel?
+Your Previous Command: obabel -ipdb *.pdb -opqr -m
+
+Result: OpenBabel takes the PDB (which has no charge data) and creates a PQR. Since it wasn't told to calculate anything, it often puts 0.000 in the charge column.
+
+The Problem: If your PQR has 0.000 charges, charge.py will correctly calculate the math, but the result will always be zero.
+
+My Suggested Command: obabel ... --partialcharge gasteiger
+
+Result: This tells OpenBabel to look at the atoms (Carbons, Nitrogens, etc.) and calculate their expected charge based on their neighbors.
+
+Why Gasteiger?: It's a standard, fast way to get "good enough" charges for similarity studies without needing a massive molecular dynamics setup.
+- PyMOL is CPU-bound.
+- step4: A. The Residue Ranges
+In run_align_selected_residues.sh, the author uses a very specific set of 20 conserved residue ranges for alignment:
+
+5-8,32-40,45-49,52-56,62-66,97-105,115-136,146-158,193-197,219-230,265-277,283-295,301-309,320-324,330-339,346-349,366-369,371-375,418-433,464-468
+
+Your current 04_batch_align.py aligns the entire backbone. For plant CYPs with low sequence identity, aligning the whole protein can "pull" the binding pocket out of alignment. You should use their specific ranges to ensure the pocket stays centered.
+- step9 Your charge_results_parallel_norm.txt is mostly zeros (207 out of 260 columns are 0.0).
+
+Author's Results: They have significant, positive normalized charges.
+
+The Cause: This is likely due to the ValueError we saw earlier or the logic in charge.py failing to find atoms at the distance you specified. Because the surface hit-point was 0.0, the charge script was trying to calculate potential at a point that was "inside" an atom, leading to mathematical errors or zeros.Why this happened:2. The "Zero" Problem (Surface)Your file contains many values that are exactly $0.0$ (about 22 per protein).Author's Results: Every single value is a positive, non-zero number.The Cause: This confirms that your rays are starting inside an atom sphere. The moment the ray is "born," it hits the atom it's inside of, returning a distance of 0. To match the author, that starting point needs to be moved to the HEME Iron.
+The normalization.py script divides every value by the Global Standard Deviation ($\sigma$) of the entire file. Because your origin is currently "buried" inside an atom, most of your distances are tiny (0.3 - 1.0). If you have even one or two "correct" distances (like 15.0), the spread ($\sigma$) becomes very large, which mathematically "crushes" your smaller values down to $0.08$ when you divide by it.
+- To fix this, you need to adjust the Origin Point in your alignment script. In your 04_batch_align.py, the proteins are currently being centered based on a specific set of residues (the "target residues"). If the geometric center of those residues happens to be inside an atom (like a bulky Sidechain or the HEME iron), your ray-tracing will start at a distance of 0.0.
+- 1. Use imap_unordered for Real-Time Results
+The standard pool.map waits for a batch of results to be ready before it yields anything. To get a smooth, one-by-one update, use imap_unordered. This processes tasks as they come in, regardless of the original list order.
+
+2. Force flush=True on Every Print
+By default, Python "buffers" text. It waits until it has a few hundred characters before actually pushing them to your terminal. Adding flush=True tells the OS to show the text immediately.
+
+3. Set chunksize=1
+By default, multiprocessing gives each core a "chunk" of 10–20 proteins at a time to save on communication overhead. This is why you see 10 names pop up, then a long pause, then another 10. Setting chunksize=1 forces it to report back after every single protein.
+- Dataset Dependency: If the author's vectors_matrix.txt was normalized using a batch of 181 proteins, but your file contains 342 proteins, your global_std will be calculated from a different pool of numbers.
+
+Scaling Impact: Because every value in your vector is divided by this global_std (norm_values = values / global_std), a larger or smaller batch of proteins will shift every single decimal in your final output.
+- For your final Step 10 (Combine) to work, you must ensure that Index 1 in your surface file points to the same spot in 3D space as Index 1 in your charge file. You guarantee this by using:
+
+The Same Lattice: Both scripts must use the exact same -pdb sphere.pdb.
+
+The Same Radius: Both scripts must use the exact same -r 15.
+- The ray vector $V$ remains constant for the entire duration of the atom loop. The script simply calculates the intersection distance $t1$ for every atom in the list and keeps track of which atom resulted in the smallest $t1$ (the "first hit").Even though they run separately, charge.py is essentially doing a "hidden" version of the surface.py math to find the right atom.
+
+Ray Tracing: It takes a vector from your sphere.pdb.
+
+Intersection: It checks every atom in your PQR to see if that ray hits it.
+
+The "Winner": It finds the atom with the smallest t1 (the closest distance).
+
+The Output: Instead of saving that distance t1 (like surface.py does), it looks up that atom's charge in your reference_charges.txt and saves that instead. 
 - The primary challenge is that surface.py is sequential: for a single ray, it checks one atom, potentially updates (shortens) the ray vector $V$, and then checks the next atom using that new, shortened $V$. A standard GPU approach is parallel, checking all atoms simultaneously, which would miss those intermediate vector mutations and rounding shifts.To get a bit-for-bit match, we must use a Custom CUDA Kernel (via CuPy or Numba) that processes each ray in its own thread but handles the atoms for that ray sequentially.
 - 1. Cumulative Rounding and Vector Mutation
 The most significant mathematical difference lies in how the ray vector V is handled during the atom-check loop:

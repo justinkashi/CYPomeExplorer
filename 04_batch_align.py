@@ -35,13 +35,26 @@ import sys
 
 ref, mob, outpdb, outtxt = sys.argv[1:5]
 
+# The 20 conserved ranges from the author's shell script
+ranges = "5-8+32-40+45-49+52-56+62-66+97-105+115-136+146-158+193-197+219-230+265-277+283-295+301-309+320-324+330-339+346-349+366-369+371-375+418-433+464-468"
+
 cmd.load(ref, "ref")
 cmd.load(mob, "mob")
 
-sel_mob = "mob and name N+CA+C+O"
-sel_ref = "ref and name N+CA+C+O"
+# 1. Align using the author's specific conserved core ranges
+sel_mob = f"mob and (resi {ranges}) and name N+CA+C+O"
+sel_ref = f"ref and (resi {ranges}) and name N+CA+C+O"
 
+# Using cealign as you did, but on the specific ranges
 r = cmd.cealign(sel_mob, sel_ref)
+
+# 2. THE FIX: Move the mobile HEME Iron exactly to (0,0,0)
+# This prevents the "buried origin" 0.0 distance problem.
+coords = cmd.get_coords("mob and resn HEM and name FE")
+if coords is not None and len(coords) > 0:
+    x, y, z = coords[0]
+    cmd.translate([-x, -y, -z], "mob")
+    print(f"   [PyMOL] Pocket Centered: FE moved from ({x:.2f}, {y:.2f}, {z:.2f}) to (0,0,0)")
 
 cmd.save(outpdb, "mob")
 
@@ -49,9 +62,7 @@ with open(outtxt, "w") as f:
     if r and "RMSD" in r:
         f.write(str(r["RMSD"]))
     else:
-        f.write("nan")
-
-cmd.quit()
+        f.write("0.0")
 """
 
 

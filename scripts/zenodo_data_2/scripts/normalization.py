@@ -1,8 +1,8 @@
 import numpy as np
 
 # === CONFIGURATION ===
-input_file = "../charge.txt"    # <-- change this
-output_file = "charge.txt"  # <-- change this
+input_file = "surface_parallel_260.txt"    # <-- change this
+output_file = "surface_results_parallel_norm.txt"  # <-- change this
 
 # === LOAD FILE & COMPUTE STD ===
 all_values = []

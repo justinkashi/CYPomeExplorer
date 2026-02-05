@@ -17,20 +17,22 @@ PIPELINE
 
 4. Batch align the 342 plant cyps via pymol cealign-> pass 
 
-4. Generate hemisphere lattice
+5. Generate hemisphere lattice
   - O: sphere.pdb
 
-5. Convert PDB -> PQR (openbabel add radii)
+6. Convert PDB -> PQR (openbabel, add radii)
 
-5. Generate surface vectors (surface.py)
+7. Generate surface vectors (surface.py) -> 
+  - bottleneck: uses one core -> tweaked it using python's multiprocessing (surface_parallel.py) 
+  - trying to make surface_gpu.py -> 
+  - 
 
-6. Generate charge vectors (charge.py)
+8. Generate charge vectors (charge.py)
 
-7. Normalize (normalization.py)
+9. Normalize (normalization.py)
 
-8. Combine to final BSV (combine.py)
+10. Combine to final BSV (combine.py)
 
-9. 
 
 
 

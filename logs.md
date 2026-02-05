@@ -1,5 +1,18 @@
 **Feb5**
 - 
+- step7 gpu: While maximizing your CPU cores with multiprocessing is the standard approach for this pipeline, moving to a GPU is the next level of "playing" with performance.
+
+To make this jump, you have to transition from NumPy (CPU-based) to a library like CuPy, which mimics the NumPy API but executes on NVIDIA CUDA cores. This is particularly effective for the "ray-casting" logic because a GPU can
+- step7: bottleneck. Python’s Global Interpreter Lock (GIL) prevents this specific loop from using more than one core natively without the multiprocessing library.
+- The surface.py script is performing a ray-casting algorithm. For every single one of your 342 plant CYPs, it has to:
+
+Load thousands of atoms from the PQR.
+
+For each of the ~500–600 points in your sphere.pdb lattice, calculate a vector.
+
+Check that vector against every single atom in the protein to find the first "hit".
+
+- Q: step7 surface.py -> uses GPU alot then stops for abit then goes up again when running resumes -> whats causing this pause? 
 - align = iterative least‑squares fit with outlier rejection. It can drop badly fitting regions (e.g., disordered tails). Good for robustness, but not exactly what the authors used for backbone‑based comparisons.
 cealign = Combinatorial Extension alignment (CE). It aligns based on structural fragments and reports RMSD from that alignment. This is what the authors’ scripts use for backbone RMSD matrices, so it’s closer to paper‑faithful.
 

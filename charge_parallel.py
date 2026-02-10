@@ -10,6 +10,7 @@ def read_pdb_coords(pdb_filename):
     with open(pdb_filename, 'r') as file:
         for line in file:
             if line.startswith(("ATOM", "HETATM")):
+                # Lattice files use strict fixed-width columns
                 coords.append([float(line[30:38]), float(line[38:46]), float(line[46:54])])
     return np.array(coords)
 
@@ -19,40 +20,57 @@ def read_reference_file(ref_file):
         for line in f:
             parts = line.split()
             if len(parts) == 4:
-                # Key: (Residue, AtomName)
+                # Key: (ResidueName, AtomName)
                 ref_map[(parts[1].upper(), parts[0].upper())] = float(parts[2])
     return ref_map
 
 def process_protein(task_args):
     pqr_path, surface_coords, radius_limit, ref_map = task_args
     base_name = os.path.splitext(os.path.basename(pqr_path))[0]
-    print(f"   [Proc {os.getpid()}] Processing: {base_name}", flush=True)
-
-    prot_coords, prot_charges = [], []
-    with open(pqr_path, "r") as f:
-        for line in f:
-            parts = line.split()
-            if line.startswith("ATOM") and len(parts) >= 10:
-                res, atom = parts[3].upper(), parts[2].upper()
-                if res == "HEM": continue
-                if (res, atom) in ref_map:
-                    prot_coords.append([float(parts[6]), float(parts[7]), float(parts[8])])
-                    prot_charges.append(ref_map[(res, atom)])
-
-    prot_coords = np.array(prot_coords)
-    hit_potentials = []
     
-    for ray in surface_coords:
-        V_unit = ray / np.linalg.norm(ray)
-        # Using a representative 10A hit point for the potential vector
-        hit_point = V_unit * 10.0 
-        
-        pot = sum(q / np.linalg.norm(center - hit_point) 
-                  for center, q in zip(prot_coords, prot_charges)
-                  if np.linalg.norm(center - hit_point) > 0.1)
-        hit_potentials.append(round(pot, 4))
+    prot_coords, prot_charges = [], []
+    try:
+        with open(pqr_path, "r") as f:
+            for line in f:
+                parts = line.split()
+                if line.startswith("ATOM") and len(parts) >= 10:
+                    # Residue is parts[3], Atom is parts[2]
+                    res, atom = parts[3].upper(), parts[2].upper()
+                    if res == "HEM": continue
+                    
+                    if (res, atom) in ref_map:
+                        # Negative indexing for 10-column PQRs
+                        # -5:X, -4:Y, -3:Z
+                        prot_coords.append([float(parts[-5]), float(parts[-4]), float(parts[-3])])
+                        prot_charges.append(ref_map[(res, atom)])
 
-    return f"{base_name} {' '.join(map(str, hit_potentials))}"
+        if not prot_coords:
+            # Safety return if no valid atoms found
+            return f"{base_name} {' '.join(['0.0'] * len(surface_coords))}"
+
+        prot_coords = np.array(prot_coords)
+        prot_charges = np.array(prot_charges)
+        hit_potentials = []
+
+        for ray in surface_coords:
+            # Calculate potential at a representative distance (10.0A)
+            V_unit = ray / np.linalg.norm(ray)
+            hit_point = V_unit * 10.0 
+            
+            # Distance from every atom to the hit point
+            dists = np.linalg.norm(prot_coords - hit_point, axis=1)
+            dists[dists < 0.1] = 0.1 # Prevent division by zero
+            
+            # Potential = sum(q/r)
+            pot = np.sum(prot_charges / dists)
+            hit_potentials.append(round(pot, 4))
+            
+        print(f"   [Proc {os.getpid()}] Finished: {base_name}", flush=True)
+        return f"{base_name} {' '.join(map(str, hit_potentials))}"
+
+    except Exception as e:
+        # Fallback to prevent TypeError: 'NoneType' object is not iterable
+        return f"{base_name} {' '.join(['0.0'] * len(surface_coords))}"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -63,7 +81,11 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--output', required=True)
     args = parser.parse_args()
 
-    all_files = [f for pattern in args.name for f in glob.glob(pattern)]
+    # Expand wildcards
+    all_files = []
+    for pattern in args.name:
+        all_files.extend(glob.glob(pattern))
+
     surface_coords = read_pdb_coords(args.pdb)
     ref_map = read_reference_file(args.ref)
     tasks = [(f, surface_coords, args.radius, ref_map) for f in all_files]

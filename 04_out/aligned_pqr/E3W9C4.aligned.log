@@ -1,0 +1,44 @@
+2026-02-05 12:26:55,031 INFO:main.py:246:print_splash_screen:PDB2PQR v3.7.1: biomolecular structure conversion software.
+2026-02-05 12:26:55,031 INFO:main.py:248:print_splash_screen:Please cite:  Jurrus E, et al.  Improvements to the APBS biomolecular solvation software suite.  Protein Sci 27 112-128 (2018).
+2026-02-05 12:26:55,031 INFO:main.py:248:print_splash_screen:Please cite:  Dolinsky TJ, et al.  PDB2PQR: expanding and upgrading automated preparation of biomolecular structures for molecular simulations. Nucleic Acids Res 35 W522-W525 (2007).
+2026-02-05 12:26:55,031 INFO:main.py:770:main_driver:Checking and transforming input arguments.
+2026-02-05 12:26:55,031 INFO:main.py:774:main_driver:Loading topology files.
+2026-02-05 12:26:55,074 INFO:main.py:776:main_driver:Loading molecule: data/04_out/aligned_struct/E3W9C4.aligned.pdb
+2026-02-05 12:26:55,092 INFO:main.py:781:main_driver:Setting up molecule.
+2026-02-05 12:26:55,104 INFO:main.py:423:setup_molecule:Created biomolecule object with 513 residues and 4063 atoms.
+2026-02-05 12:26:55,104 INFO:main.py:785:main_driver:Setting termini states for biomolecule chains.
+2026-02-05 12:26:55,115 INFO:main.py:616:non_trivial:Loading forcefield.
+2026-02-05 12:26:55,121 INFO:main.py:620:non_trivial:Loading hydrogen topology definitions.
+2026-02-05 12:26:55,125 INFO:main.py:474:is_repairable:This biomolecule is clean.  No repair needed.
+2026-02-05 12:26:55,125 INFO:main.py:635:non_trivial:Updating disulfide bridges.
+2026-02-05 12:26:55,125 INFO:main.py:638:non_trivial:Debumping biomolecule.
+2026-02-05 12:26:55,203 INFO:main.py:661:non_trivial:Adding hydrogens to biomolecule.
+2026-02-05 12:26:55,456 INFO:main.py:664:non_trivial:Debumping biomolecule (again).
+2026-02-05 12:26:55,797 INFO:main.py:666:non_trivial:Optimizing hydrogen bonds
+2026-02-05 12:26:55,797 INFO:__init__.py:375:initialize_wat_optimization:Initializing water bonding optimization...
+2026-02-05 12:26:55,898 INFO:main.py:678:non_trivial:Applying force field to biomolecule states.
+2026-02-05 12:26:55,902 INFO:main.py:725:non_trivial:Regenerating headers.
+2026-02-05 12:26:55,903 INFO:main.py:750:non_trivial:Regenerating PDB lines.
+2026-02-05 12:26:55,932 WARNING:main.py:326:print_pqr:Ignoring 390 header lines in output.
+2026-02-05 12:46:23,445 INFO:main.py:246:print_splash_screen:PDB2PQR v3.7.1: biomolecular structure conversion software.
+2026-02-05 12:46:23,446 INFO:main.py:248:print_splash_screen:Please cite:  Jurrus E, et al.  Improvements to the APBS biomolecular solvation software suite.  Protein Sci 27 112-128 (2018).
+2026-02-05 12:46:23,446 INFO:main.py:248:print_splash_screen:Please cite:  Dolinsky TJ, et al.  PDB2PQR: expanding and upgrading automated preparation of biomolecular structures for molecular simulations. Nucleic Acids Res 35 W522-W525 (2007).
+2026-02-05 12:46:23,446 INFO:main.py:770:main_driver:Checking and transforming input arguments.
+2026-02-05 12:46:23,446 INFO:main.py:774:main_driver:Loading topology files.
+2026-02-05 12:46:23,474 INFO:main.py:776:main_driver:Loading molecule: data/04_out/aligned_struct/E3W9C4.aligned.pdb
+2026-02-05 12:46:23,483 INFO:main.py:781:main_driver:Setting up molecule.
+2026-02-05 12:46:23,493 INFO:main.py:423:setup_molecule:Created biomolecule object with 513 residues and 4063 atoms.
+2026-02-05 12:46:23,493 INFO:main.py:785:main_driver:Setting termini states for biomolecule chains.
+2026-02-05 12:46:23,500 INFO:main.py:616:non_trivial:Loading forcefield.
+2026-02-05 12:46:23,504 INFO:main.py:620:non_trivial:Loading hydrogen topology definitions.
+2026-02-05 12:46:23,507 INFO:main.py:474:is_repairable:This biomolecule is clean.  No repair needed.
+2026-02-05 12:46:23,507 INFO:main.py:635:non_trivial:Updating disulfide bridges.
+2026-02-05 12:46:23,507 INFO:main.py:638:non_trivial:Debumping biomolecule.
+2026-02-05 12:46:23,593 INFO:main.py:661:non_trivial:Adding hydrogens to biomolecule.
+2026-02-05 12:46:23,788 INFO:main.py:664:non_trivial:Debumping biomolecule (again).
+2026-02-05 12:46:24,054 INFO:main.py:666:non_trivial:Optimizing hydrogen bonds
+2026-02-05 12:46:24,054 INFO:__init__.py:375:initialize_wat_optimization:Initializing water bonding optimization...
+2026-02-05 12:46:24,132 INFO:main.py:678:non_trivial:Applying force field to biomolecule states.
+2026-02-05 12:46:24,136 INFO:main.py:725:non_trivial:Regenerating headers.
+2026-02-05 12:46:24,136 INFO:main.py:750:non_trivial:Regenerating PDB lines.
+2026-02-05 12:46:24,160 WARNING:main.py:326:print_pqr:Ignoring 390 header lines in output.
